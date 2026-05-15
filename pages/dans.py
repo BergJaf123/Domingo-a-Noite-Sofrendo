@@ -114,23 +114,8 @@ html_code = f"""
     <canvas id="gameCanvas" width="{WIDTH}" height="{HEIGHT}" tabindex="0"></canvas>
 </div>
 <style>
-    #game-container {{ 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        font-family: sans-serif; 
-        color: white; 
-        width: 100%;
-        max-width: 1100px;
-        margin: 0 auto;
-    }}
-    .controls {{ 
-        width: 100%; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        margin-bottom: 10px; 
-    }}
+    #game-container {{ display: flex; flex-direction: column; align-items: center; font-family: sans-serif; color: white; }}
+    .controls {{ width: {WIDTH}px; max-width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }}
     #start-btn {{ 
         padding: 10px 20px; 
         background: #ff4b4b; 
@@ -140,15 +125,7 @@ html_code = f"""
         cursor: pointer; 
         font-weight: bold; 
     }}
-    #gameCanvas {{ 
-        background: #146464; 
-        border: 4px solid #262730; 
-        border-radius: 10px; 
-        outline: none; 
-        width: 100%; 
-        height: auto; 
-        aspect-ratio: {WIDTH} / {HEIGHT};
-    }}
+    #gameCanvas {{ background: #146464; border: 4px solid #262730; border-radius: 10px; outline: none; max-width: 100%; height: auto; }}
 </style>
 <script>
 (() => {{
