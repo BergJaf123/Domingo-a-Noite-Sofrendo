@@ -248,21 +248,39 @@ html_code = f"""
                 ctx.lineWidth = 1;
             }}
             ctx.strokeStyle = COLORS.hitLine; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(GAME_CFG.startX-5, GAME_CFG.hitY); ctx.lineTo(GAME_CFG.startX+283, GAME_CFG.hitY); ctx.stroke(); ctx.lineWidth = 1;
+            const labels = ["◄", "▼", "▲", "►"];
             for (const n of this.chart) {{
                 if (n.hit || n.miss) continue;
                 const td = n.time - ct; if (td > 2 || td < -0.5) continue;
                 const y = GAME_CFG.hitY - td * assets.config.noteSpeed - 12;
                 const x = GAME_CFG.startX + n.lane * 72;
-                ctx.fillStyle = COLORS.lanes[n.lane]; this.roundRect(x+4, y, 52, 24, 8, true); ctx.strokeStyle = "white"; this.roundRect(x+4, y, 52, 24, 8, false);
+                
+                // Desenhar a nota
+                ctx.fillStyle = COLORS.lanes[n.lane]; 
+                this.roundRect(x+4, y, 52, 24, 8, true); 
+                ctx.strokeStyle = "white"; 
+                this.roundRect(x+4, y, 52, 24, 8, false);
+                
+                // Desenhar a seta dentro da nota
+                ctx.fillStyle = "white";
+                ctx.font = "bold 16px monospace";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(labels[n.lane], x+30, y+12);
             }}
-            const labels = ["◄", "▼", "▲", "►"];
+            
             for (let i=0; i<4; i++) {{
                 const x = GAME_CFG.startX + i * 72; 
                 ctx.fillStyle = this.flash[i] > 0 ? COLORS.lanes[i] : COLORS.gray; 
                 this.roundRect(x+4, GAME_CFG.hitY-18, 52, 36, 10, true);
-                ctx.fillStyle = "white"; ctx.font = "bold 20px monospace"; ctx.textAlign = "center";
-                ctx.fillText(labels[i], x+30, GAME_CFG.hitY+7);
+                
+                ctx.fillStyle = "white"; 
+                ctx.font = "bold 22px monospace"; 
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(labels[i], x+30, GAME_CFG.hitY);
             }}
+            ctx.textBaseline = "alphabetic"; // Reset baseline
             const img = sprites[this.pose] || sprites.idle;
             if (img) {{ 
                 const r = GAME_CFG.spriteH / img.height; 
