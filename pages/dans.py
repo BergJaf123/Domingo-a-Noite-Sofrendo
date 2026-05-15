@@ -47,22 +47,6 @@ def resolve_asset(uploaded_file, file_name, fallback_mime="application/octet-str
 
 st.title("Domingo de Noite Sofrendo")
 
-# Injeção de CSS para remover margens do Streamlit e ocupar a tela toda
-st.markdown("""
-    <style>
-        .block-container {
-            padding-top: 1rem;
-            padding-bottom: 0rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-            max-width: 100% !important;
-        }
-        [data-testid="stSidebarNav"] {display: none;}
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-    </style>
-""", unsafe_allow_html=True)
-
 with st.sidebar:
     st.header("Configurações")
     
@@ -137,7 +121,7 @@ html_code = f"""
         font-family: sans-serif; 
         color: white; 
         width: 100%;
-        max-width: 1000px;
+        max-width: 1100px;
         margin: 0 auto;
     }}
     .controls {{ 
