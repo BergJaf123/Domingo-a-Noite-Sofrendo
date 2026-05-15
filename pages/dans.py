@@ -94,12 +94,13 @@ with st.sidebar:
     st.subheader("Dificuldade")
     bpm = st.slider("BPM", 60, 320, 117)
     note_speed = st.slider("Velocidade", 100, 800, 350)
+    note_freq = st.slider("Densidade", 0.2, 3.0, 1.0)
     seed = st.number_input("Seed", value=3719)
 
 assets = {
     "audio": audio_uri,
     "sprites": {"idle": idle_uri, "left": left_uri, "down": down_uri, "up": up_uri, "right": right_uri},
-    "config": {"width": WIDTH, "height": HEIGHT, "bpm": bpm, "noteSpeed": note_speed, "noteFreq": 1.0, "seed": int(seed), "chromaSensitivity": chroma_sensitivity}
+    "config": {"width": WIDTH, "height": HEIGHT, "bpm": bpm, "noteSpeed": note_speed, "noteFreq": note_freq, "seed": int(seed), "chromaSensitivity": chroma_sensitivity}
 }
 
 config_json = json.dumps(assets, ensure_ascii=False)
@@ -113,10 +114,39 @@ html_code = f"""
     <canvas id="gameCanvas" width="{WIDTH}" height="{HEIGHT}" tabindex="0"></canvas>
 </div>
 <style>
-    #game-container {{ display: flex; flex-direction: column; align-items: center; font-family: sans-serif; color: white; }}
-    .controls {{ width: {WIDTH}px; max-width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }}
-    #start-btn {{ padding: 10px 20px; background: #ff4b4b; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }}
-    #gameCanvas {{ background: #146464; border: 4px solid #262730; border-radius: 10px; outline: none; max-width: 100%; height: auto; }}
+    #game-container {{ 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        font-family: sans-serif; 
+        color: white; 
+        width: 100%;
+    }}
+    .controls {{ 
+        width: 100%; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 10px; 
+    }}
+    #start-btn {{ 
+        padding: 10px 20px; 
+        background: #ff4b4b; 
+        color: white; 
+        border: none; 
+        border-radius: 5px; 
+        cursor: pointer; 
+        font-weight: bold; 
+    }}
+    #gameCanvas {{ 
+        background: #146464; 
+        border: 4px solid #262730; 
+        border-radius: 10px; 
+        outline: none; 
+        width: 100%; 
+        height: auto; 
+        aspect-ratio: {WIDTH} / {HEIGHT};
+    }}
 </style>
 <script>
 (() => {{
@@ -162,7 +192,7 @@ html_code = f"""
             while (t < dur - 1.0) {{
                 const l = Math.floor(this.random() * 4); n.push({{ lane: l, time: t, hit: false, miss: false }});
                 if (this.random() < 0.2) n.push({{ lane: (l+1)%4, time: t, hit: false, miss: false }});
-                t += bi * [0.5, 1, 1, 1, 2][Math.floor(this.random()*5)];
+                t += bi * [0.5, 1, 1, 1, 2][Math.floor(this.random()*5)] * assets.config.noteFreq;
             }}
             return n.sort((a,b) => a.time - b.time);
         }}
