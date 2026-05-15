@@ -137,6 +137,8 @@ html_code = f"""
         font-family: sans-serif; 
         color: white; 
         width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
     }}
     .controls {{ 
         width: 100%; 
