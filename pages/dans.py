@@ -172,7 +172,7 @@ html_code = f"""
     const startBtn = document.getElementById('start-btn');
     const statusTxt = document.getElementById('game-status');
     const COLORS = {{ bg: '#146464', dark: '#141428', gray: '#3c3c50', white: '#ffffff', hitLine: '#c8c8ff', perfect: '#ffdc32', good: '#50dc78', miss: '#dc3c3c', combo: '#ffb400', lanes: ['#ffffff', '#ffa032', '#3cffff', '#f0a0f0'] }};
-    const GAME_CFG = {{ laneCount: 4, laneWidth: 60, gap: 12, startX: 30, hitY: {HEIGHT} - 100, noteH: 24, charX: 630, charY: {HEIGHT} - 80, spriteH: 350 }};
+    const GAME_CFG = {{ laneCount: 4, laneWidth: 60, gap: 12, startX: 30, hitY: {HEIGHT} - 100, noteH: 24, charX: 630, charY: {HEIGHT} - 50, spriteH: 500 }};
     const KEY_MAP = {{ 'ArrowLeft': 0, 'ArrowDown': 1, 'ArrowUp': 2, 'ArrowRight': 3, 'a': 0, 's': 1, 'j': 2, 'k': 3, 'A': 0, 'S': 1, 'J': 2, 'K': 3 }};
 
     function removeGreen(img) {{
@@ -247,11 +247,19 @@ html_code = f"""
                 const x = GAME_CFG.startX + n.lane * 72;
                 ctx.fillStyle = COLORS.lanes[n.lane]; this.roundRect(x+4, y, 52, 24, 8, true); ctx.strokeStyle = "white"; this.roundRect(x+4, y, 52, 24, 8, false);
             }}
+            const labels = ["◄", "▼", "▲", "►"];
             for (let i=0; i<4; i++) {{
-                const x = GAME_CFG.startX + i * 72; ctx.fillStyle = this.flash[i] > 0 ? COLORS.lanes[i] : COLORS.gray; this.roundRect(x+4, GAME_CFG.hitY-18, 52, 36, 10, true);
+                const x = GAME_CFG.startX + i * 72; 
+                ctx.fillStyle = this.flash[i] > 0 ? COLORS.lanes[i] : COLORS.gray; 
+                this.roundRect(x+4, GAME_CFG.hitY-18, 52, 36, 10, true);
+                ctx.fillStyle = "white"; ctx.font = "bold 20px monospace"; ctx.textAlign = "center";
+                ctx.fillText(labels[i], x+30, GAME_CFG.hitY+7);
             }}
             const img = sprites[this.pose] || sprites.idle;
-            if (img) {{ const r = 350/img.height; ctx.drawImage(img, 630-img.width*r/2, {HEIGHT}-80-350, img.width*r, 350); }}
+            if (img) {{ 
+                const r = GAME_CFG.spriteH / img.height; 
+                ctx.drawImage(img, 630 - (img.width * r) / 2, {HEIGHT} - 50 - GAME_CFG.spriteH, img.width * r, GAME_CFG.spriteH); 
+            }}
             ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "bold 28px monospace";
             ctx.fillText("SCORE: " + String(this.score).padStart(8, '0'), 400, 60);
             if (this.combo >= 3) {{ ctx.fillStyle = COLORS.combo; ctx.fillText(this.combo + "x COMBO", 400, 100); }}
