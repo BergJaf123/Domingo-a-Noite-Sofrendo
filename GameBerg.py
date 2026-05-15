@@ -111,4 +111,4 @@ st.components.v1.html("""
 # Botão Streamlit que navega para o jogo
 st.markdown("<br>", unsafe_allow_html=True)
 if st.button("🎮 JOGAR AGORA", use_container_width=True, type="primary"):
-    st.switch_page("pages/main.py")
+    st.switch_page("pages/dans.py")
