@@ -5,8 +5,6 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 
-# NOTA: st.set_page_config removido para evitar conflito com o arquivo principal (GameBerg.py)
-
 # Dimensões do jogo
 WIDTH = 1280
 HEIGHT = 720
@@ -24,14 +22,11 @@ MIME_BY_SUFFIX = {
 }
 
 def get_local_file_as_data_uri(file_name):
-    """Lê um arquivo local na pasta raiz do projeto (mesma de GameBerg.py)."""
-    # Como este arquivo está em pages/main.py, subimos um nível para achar os assets na raiz
+    """Lê um arquivo local na pasta raiz do projeto."""
     base_path = Path(__file__).parent.parent
     file_path = base_path / file_name
-    
     if not file_path.exists():
         return None
-        
     suffix = file_path.suffix.lower()
     mime = MIME_BY_SUFFIX.get(suffix, "application/octet-stream")
     try:
@@ -48,51 +43,43 @@ def file_to_data_uri(uploaded_file, file_name, fallback_mime="application/octet-
         mime = MIME_BY_SUFFIX.get(suffix, fallback_mime)
         payload = base64.b64encode(uploaded_file.getvalue()).decode("utf-8")
         return f"data:{mime};base64,{payload}", "Upload"
-    
     uri = get_local_file_as_data_uri(file_name)
     if uri:
         return uri, "Automático"
     return "", "Não encontrado"
 
-st.title("🕹️ Domingo de Noite Sofrendo")
+st.title("Domingo de Noite Sofrendo")
 
-# Painel de Diagnóstico na barra lateral
+# Painel na barra lateral
 with st.sidebar:
-    st.header("🎮 Configurações")
+    st.header("Configurações")
     
-    # Botão para voltar para a Home
-    if st.button("🏠 Voltar para o Início"):
-        st.switch_page("GameBerg.py")
-    
-    st.divider()
-    st.subheader("📁 Status dos Assets")
-    st.caption("Arquivos devem estar na raiz do GitHub.")
-    
-    audio_file = st.file_uploader("Trocar Música", type=["mp3", "wav", "ogg"])
+    st.subheader("Status dos Assets")
+    audio_file = st.file_uploader("Música", type=["mp3", "wav", "ogg"])
     audio_uri, audio_status = file_to_data_uri(audio_file, "musica.mp3", "audio/mpeg")
-    st.write(f"🎵 **Música:** {audio_status}")
+    st.write(f"Música: {audio_status}")
     
     st.divider()
-    st.subheader("🖼️ Sprites & Chroma Key")
+    st.subheader("Sprites e Chroma Key")
     chroma_sensitivity = st.slider("Sensibilidade do Verde", 0, 255, 100)
     
-    u_idle = st.file_uploader("Trocar Idle", type=["png", "jpg", "webp"], key="u_idle")
-    idle_uri, idle_status = file_to_data_uri(u_idle, "sprite_p.png")
-    
-    u_left = st.file_uploader("Trocar Esquerda", type=["png", "jpg", "webp"], key="u_left")
-    left_uri, left_status = file_to_data_uri(u_left, "sprite_e.png")
-    
-    u_down = st.file_uploader("Trocar Baixo", type=["png", "jpg", "webp"], key="u_down")
-    down_uri, down_status = file_to_data_uri(u_down, "sprite_b.png")
-    
-    u_up = st.file_uploader("Trocar Cima", type=["png", "jpg", "webp"], key="u_up")
-    up_uri, up_status = file_to_data_uri(u_up, "sprite_c.png")
-    
-    u_right = st.file_uploader("Trocar Direita", type=["png", "jpg", "webp"], key="u_right")
-    right_uri, right_status = file_to_data_uri(u_right, "sprite_d.png")
+    # Compactando os campos de sprites para ocupar metade do espaço (usando 2 colunas dentro da sidebar)
+    c1, c2 = st.columns(2)
+    with c1:
+        u_idle = st.file_uploader("Idle", type=["png", "jpg", "webp"], key="u_idle")
+        idle_uri, _ = file_to_data_uri(u_idle, "sprite_p.png")
+        u_left = st.file_uploader("Esquerda", type=["png", "jpg", "webp"], key="u_left")
+        left_uri, _ = file_to_data_uri(u_left, "sprite_e.png")
+        u_down = st.file_uploader("Baixo", type=["png", "jpg", "webp"], key="u_down")
+        down_uri, _ = file_to_data_uri(u_down, "sprite_b.png")
+    with c2:
+        u_up = st.file_uploader("Cima", type=["png", "jpg", "webp"], key="u_up")
+        up_uri, _ = file_to_data_uri(u_up, "sprite_c.png")
+        u_right = st.file_uploader("Direita", type=["png", "jpg", "webp"], key="u_right")
+        right_uri, _ = file_to_data_uri(u_right, "sprite_d.png")
 
     st.divider()
-    st.subheader("⚙️ Dificuldade")
+    st.subheader("Dificuldade")
     bpm = st.slider("BPM", min_value=60, max_value=240, value=172)
     note_speed = st.slider("Velocidade", min_value=100, max_value=800, value=300)
     note_freq = st.slider("Densidade", min_value=0.2, max_value=3.0, value=1.0)
@@ -265,7 +252,7 @@ html_code = f"""
             ctx.fillStyle = this.health > 25 ? COLORS.good : COLORS.miss; this.roundRect(400, {HEIGHT}-50, 300*(this.health/100), 20, 10, true);
             ctx.strokeStyle = "white"; this.roundRect(400, {HEIGHT}-50, 300, 20, 10, false);
             if (this.gameOver) this.drawOverlay("GAME OVER", COLORS.miss, "HP zerado!");
-            if (this.finished) this.drawOverlay("CONCLUÍDO!", COLORS.perfect, "Score final: " + this.score);
+            if (this.finished) this.drawOverlay("FIM!", COLORS.perfect, "Score final: " + this.score);
             if (!this.running && !this.gameOver && !this.finished) {{ this.drawOverlay("PRONTO?", "white", "Clique em JOGAR ou aperte ENTER"); }}
         }}
         drawOverlay(txt, color, sub) {{
