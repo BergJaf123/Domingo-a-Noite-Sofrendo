@@ -238,7 +238,15 @@ html_code = f"""
             ctx.fillStyle = COLORS.bg; ctx.fillRect(0, 0, {WIDTH}, {HEIGHT});
             const ct = this.running ? (performance.now() - this.startTime) / 1000 : 0;
             ctx.strokeStyle = COLORS.gray; ctx.beginPath(); ctx.moveTo(370, 0); ctx.lineTo(370, {HEIGHT}); ctx.stroke();
-            for (let i=0; i<4; i++) {{ const x = GAME_CFG.startX + i * 72; ctx.fillStyle = COLORS.dark; ctx.fillRect(x, 0, 60, {HEIGHT}); ctx.strokeStyle = COLORS.lanes[i]; ctx.strokeRect(x, 0, 60, {HEIGHT}); }}
+            for (let i=0; i<4; i++) {{ 
+                const x = GAME_CFG.startX + i * 72; 
+                ctx.fillStyle = COLORS.dark; 
+                ctx.fillRect(x, 0, 60, {HEIGHT}); 
+                ctx.strokeStyle = COLORS.lanes[i]; 
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, 0, 60, {HEIGHT}); 
+                ctx.lineWidth = 1;
+            }}
             ctx.strokeStyle = COLORS.hitLine; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(GAME_CFG.startX-5, GAME_CFG.hitY); ctx.lineTo(GAME_CFG.startX+283, GAME_CFG.hitY); ctx.stroke(); ctx.lineWidth = 1;
             for (const n of this.chart) {{
                 if (n.hit || n.miss) continue;
