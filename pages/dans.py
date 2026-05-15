@@ -47,6 +47,22 @@ def resolve_asset(uploaded_file, file_name, fallback_mime="application/octet-str
 
 st.title("Domingo de Noite Sofrendo")
 
+# Injeção de CSS para remover margens do Streamlit e ocupar a tela toda
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 0rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            max-width: 100% !important;
+        }
+        [data-testid="stSidebarNav"] {display: none;}
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
 with st.sidebar:
     st.header("Configurações")
     
@@ -114,8 +130,23 @@ html_code = f"""
     <canvas id="gameCanvas" width="{WIDTH}" height="{HEIGHT}" tabindex="0"></canvas>
 </div>
 <style>
-    #game-container {{ display: flex; flex-direction: column; align-items: center; font-family: sans-serif; color: white; }}
-    .controls {{ width: {WIDTH}px; max-width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }}
+    #game-container {{ 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        font-family: sans-serif; 
+        color: white; 
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+    }}
+    .controls {{ 
+        width: 100%; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 10px; 
+    }}
     #start-btn {{ 
         padding: 10px 20px; 
         background: #ff4b4b; 
@@ -125,7 +156,15 @@ html_code = f"""
         cursor: pointer; 
         font-weight: bold; 
     }}
-    #gameCanvas {{ background: #146464; border: 4px solid #262730; border-radius: 10px; outline: none; max-width: 100%; height: auto; }}
+    #gameCanvas {{ 
+        background: #146464; 
+        border: 4px solid #262730; 
+        border-radius: 10px; 
+        outline: none; 
+        width: 100%; 
+        height: auto; 
+        aspect-ratio: {WIDTH} / {HEIGHT};
+    }}
 </style>
 <script>
 (() => {{
