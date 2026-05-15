@@ -106,7 +106,7 @@ st.components.v1.html("""
 </div>
 </body>
 </html>
-""", height=820, scrolling=True)
+""", height=850, scrolling=True)
 
 # Botão Streamlit que navega para o jogo
 st.markdown("<br>", unsafe_allow_html=True)
