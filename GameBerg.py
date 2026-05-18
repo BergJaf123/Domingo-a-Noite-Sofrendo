@@ -1,12 +1,21 @@
 import streamlit as st
+import os
 
+# 1. Configuração da Página (Deve ser a primeira linha de comando Streamlit)
 st.set_page_config(
     page_title="Domingo a Noite Sofrendo",
     page_icon="🎵",
     layout="centered",
 )
 
-# CSS para esconder o menu lateral e deixar a página limpa
+# 2. CÓDIGO DE DIAGNÓSTICO (Ajuda a identificar por que o erro de navegação acontece)
+if not os.path.exists("pages"):
+    st.error("❌ Erro Crítico: A pasta 'pages' não foi encontrada na raiz do projeto.")
+elif not os.path.exists("pages/main.py"):
+    st.error("❌ Erro Crítico: O arquivo 'main.py' não foi encontrado dentro da pasta 'pages'.")
+    st.write("Arquivos encontrados em pages/:", os.listdir("pages"))
+
+# 3. CSS para esconder o menu lateral e deixar a página limpa
 st.markdown("""
 <style>
 [data-testid="stSidebar"] { display: none; }
@@ -14,6 +23,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# 4. Landing Page Visual (HTML/CSS)
 st.components.v1.html("""
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -66,7 +76,8 @@ st.components.v1.html("""
 <body>
 <div class="lp">
   <div class="hero">
-    <div class="title">DOMINGO A NOITE<br><span>SOFRENDO</span></div>
+    <div class="title">DOMINGO A NOITE  
+<span>SOFRENDO</span></div>
     <div class="subtitle">rhythm game • acerte as notas • não perca o ritmo</div>
     <div class="demo-area">
       <div class="demo-label">PREVIEW</div>
@@ -90,25 +101,17 @@ st.components.v1.html("""
     </div>
     <div class="ctrl" style="margin-top:10px"><span class="key">ENTER</span><span class="ctrl-desc">iniciar / reiniciar a música</span></div>
   </div>
-  <div class="section" style="margin-top:12px">
-    <div class="section-title">FEATURES</div>
-    <div class="tags">
-      <span class="tag tag-cyan">BPM ajustável</span>
-      <span class="tag tag-cyan">velocidade das notas</span>
-      <span class="tag tag-cyan">densidade customizável</span>
-      <span class="tag tag-purple">sprites com chroma key</span>
-      <span class="tag tag-purple">personagem animado</span>
-      <span class="tag tag-yellow">sistema de combo</span>
-      <span class="tag tag-yellow">barra de HP</span>
-      <span class="tag tag-yellow">PERFECT / GOOD / MISS</span>
-    </div>
-  </div>
 </div>
 </body>
 </html>
 """, height=850, scrolling=True)
 
-# Botão Streamlit que navega para o jogo
-st.markdown("<br>", unsafe_allow_html=True)
+# 5. Botão de Navegação
+st.markdown("  
+", unsafe_allow_html=True)
 if st.button("🎮 JOGAR AGORA", use_container_width=True, type="primary"):
-    st.switch_page("pages/game.py")
+    try:
+        # IMPORTANTE: O arquivo do jogo deve estar em pages/main.py
+        st.switch_page("pages/main.py")
+    except Exception as e:
+        st.error(f"Erro ao mudar de página: {e}")
