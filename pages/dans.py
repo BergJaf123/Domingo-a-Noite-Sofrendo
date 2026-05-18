@@ -205,7 +205,7 @@ html_code = f"""
         }}
         random() {{ this.rng = (this.rng * 1664525 + 1013904223) >>> 0; return this.rng / 4294967296; }}
         genChart() {{
-            const n = []; const dur = audio?.duration || 120; const bi = 60 / assets.config.bpm;
+            const n = []; const dur = (audio && audio.duration && !isNaN(audio.duration)) ? audio.duration : 120; const bi = 60 / assets.config.bpm;
             let t = 3.0;
             while (t < dur - 1.0) {{
                 const l = Math.floor(this.random() * 4); n.push({{ lane: l, time: t, hit: false, miss: false }});
@@ -214,7 +214,7 @@ html_code = f"""
             }}
             return n.sort((a,b) => a.time - b.time);
         }}
-        start() {{ if (!assets.audio) {{ alert("Carregue uma música primeiro!"); return; }} this.reset(); this.running = true; this.startTime = performance.now(); audio.play(); statusTxt.textContent = "JOGANDO!"; }}
+        start() {{ if (!assets.audio) {{ alert("Carregue uma música primeiro!"); return; }} this.reset(); this.running = true; this.startTime = performance.now(); if (audio) audio.play(); statusTxt.textContent = "JOGANDO!"; }}
         update(now) {{
             if (!this.running || this.gameOver || this.finished) return;
             const ct = (now - this.startTime) / 1000;
@@ -222,8 +222,8 @@ html_code = f"""
             if (this.fbT > 0) this.fbT -= 1/60;
             if (this.poseT > 0) this.poseT -= 1/60; else this.pose = "idle";
             for (let i=0; i<4; i++) if (this.flash[i] > 0) this.flash[i] -= 1/60;
-            if (this.health <= 0) {{ this.gameOver = true; this.running = false; audio.pause(); statusTxt.textContent = "GAME OVER"; }}
-            if (ct > (audio?.duration || 120) + 1) {{ this.finished = true; this.running = false; statusTxt.textContent = "FIM!"; }}
+            if (this.health <= 0) {{ this.gameOver = true; this.running = false; if (audio) audio.pause(); statusTxt.textContent = "GAME OVER"; }}
+            if (ct > (audio && audio.duration && !isNaN(audio.duration) ? audio.duration : 120) + 1) {{ this.finished = true; this.running = false; statusTxt.textContent = "FIM!"; }}
         }}
         handle(key) {{
             const l = KEY_MAP[key]; if (l === undefined || !this.running) return;
@@ -282,7 +282,7 @@ html_code = f"""
                 ctx.textBaseline = "middle";
                 ctx.fillText(labels[i], x+30, GAME_CFG.hitY);
             }}
-            ctx.textBaseline = "alphabetic"; // Reset baseline
+            ctx.textBaseline = "alphabetic";
             const img = sprites[this.pose] || sprites.idle;
             if (img) {{ 
                 const r = GAME_CFG.spriteH / img.height; 
@@ -299,7 +299,17 @@ html_code = f"""
             if (this.finished) this.drawOverlay("FIM!", COLORS.perfect, "Score final: " + this.score);
             if (!this.running && !this.gameOver && !this.finished) {{ this.drawOverlay("PRONTO?", "white", "Clique em JOGAR ou aperte ENTER"); }}
         }}
-        drawOverlay(txt, color, sub) {{ ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(0,0,{WIDTH},{HEIGHT}); ctx.textAlign = "center"; ctx.fillStyle = color; ctx.font = "bold 70px monospace"; ctx.fillText(txt, {WIDTH}/2, {HEIGHT}/2); ctx.fillStyle = "white"; ctx.font = "24px monospace"; ctx.fillText(sub, {WIDTH}/2, {HEIGHT}/2 + 60); }}
+        drawOverlay(txt, color, sub) {{ 
+            ctx.fillStyle = "rgba(0,0,0,0.8)"; 
+            ctx.fillRect(0, 0, {WIDTH}, {HEIGHT}); 
+            ctx.textAlign = "center"; 
+            ctx.fillStyle = color; 
+            ctx.font = "bold 70px monospace"; 
+            ctx.fillText(txt, {WIDTH}/2, {HEIGHT}/2); 
+            ctx.fillStyle = "white"; 
+            ctx.font = "bold 25px monospace"; 
+            ctx.fillText(sub, {WIDTH}/2, {HEIGHT}/2 + 60); 
+        }}
     }}
 
     const game = new Game();
