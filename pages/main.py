@@ -5,167 +5,120 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Dimensões do jogo
-WIDTH = 1280
-HEIGHT = 720
+# Dimensões do jogo (Aumentadas para melhor visualização)
+WIDTH = 1400
+HEIGHT = 800
 
+# Dicionário de tipos MIME
 MIME_BY_SUFFIX = {
     ".mp3": "audio/mpeg", ".wav": "audio/wav", ".ogg": "audio/ogg",
     ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
     ".webp": "image/webp", ".gif": "image/gif",
 }
 
-def get_asset_uri(file_name):
-    """Busca o arquivo na raiz ou na pasta pages/."""
-    # Caminhos possíveis: raiz (../) ou atual (./)
-    search_paths = [
-        Path(__file__).parent.parent / file_name, # Raiz
-        Path(__file__).parent / file_name,        # Pasta pages
-    ]
-    
-    for file_path in search_paths:
-        if file_path.exists():
-            suffix = file_path.suffix.lower()
-            mime = MIME_BY_SUFFIX.get(suffix, "application/octet-stream")
-            try:
-                with open(file_path, "rb") as f:
-                    payload = base64.b64encode(f.read()).decode("utf-8")
-                return f"data:{mime};base64,{payload}", "✅"
-            except:
-                pass
-    return "", "❌"
+def get_local_file_as_data_uri(file_name):
+    base_path = Path(__file__).parent.parent
+    file_path = base_path / file_name
+    if not file_path.exists(): return None
+    suffix = file_path.suffix.lower()
+    mime = MIME_BY_SUFFIX.get(suffix, "application/octet-stream")
+    try:
+        with open(file_path, "rb") as f:
+            payload = base64.b64encode(f.read()).decode("utf-8")
+        return f"data:{mime};base64,{payload}"
+    except: return None
 
-def resolve_asset(uploaded_file, file_name, fallback_mime="application/octet-stream"):
-    """Prioriza upload, depois arquivo local."""
+def file_to_data_uri(uploaded_file, file_name, fallback_mime="application/octet-stream"):
     if uploaded_file is not None:
         suffix = Path(uploaded_file.name).suffix.lower()
         mime = MIME_BY_SUFFIX.get(suffix, fallback_mime)
         payload = base64.b64encode(uploaded_file.getvalue()).decode("utf-8")
-        return f"data:{mime};base64,{payload}", "☁️"
-    
-    return get_asset_uri(file_name)
+        return f"data:{mime};base64,{payload}", "Upload"
+    uri = get_local_file_as_data_uri(file_name)
+    return (uri, "Auto") if uri else ("", "N/A")
 
-st.title("Domingo de Noite Sofrendo")
-
-# Injeção de CSS para remover margens do Streamlit e ocupar a tela toda
+# Estilo CSS para diminuir os botões de upload e ocupar a tela toda
 st.markdown("""
     <style>
-        .block-container {
-            padding-top: 1rem;
-            padding-bottom: 0rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-            max-width: 100% !important;
-        }
-        [data-testid="stSidebarNav"] {display: none;}
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
+        .block-container { padding: 1rem 1rem; max-width: 100% !important; }
+        [data-testid="stSidebar"] { width: 300px !important; }
+        /* Botões de upload super compactos */
+        .stFileUploader section { padding: 0.1rem 0.3rem !important; min-height: 45px !important; }
+        .stFileUploader label { font-size: 0.75rem !important; margin-bottom: 2px !important; }
+        .stFileUploader div div { font-size: 0.65rem !important; }
     </style>
 """, unsafe_allow_html=True)
 
+st.title("🕹️ Domingo de Noite Sofrendo")
+
 with st.sidebar:
-    st.header("Configurações")
+    st.header("🎮 Configurações")
     
-    st.subheader("Arquivos Locais")
-    # Tenta carregar música
-    audio_file = st.file_uploader("Música", type=["mp3", "wav"])
-    audio_uri, a_icon = resolve_asset(audio_file, "musica.mp3", "audio/mpeg")
-    st.write(f"{a_icon} musica.mp3")
+    if st.button("🏠 Voltar para o Início"):
+        st.switch_page("GameBerg.py")
     
     st.divider()
-    st.subheader("Sprites")
+    st.subheader("🎵 Música")
+    audio_file = st.file_uploader("Trocar Música", type=["mp3", "wav", "ogg"], label_visibility="collapsed")
+    audio_uri, audio_status = file_to_data_uri(audio_file, "musica.mp3", "audio/mpeg")
+    st.caption(f"Status: {audio_status}")
+    
+    st.divider()
+    st.subheader("🖼️ Sprites")
     chroma_sensitivity = st.slider("Chroma Key", 0, 255, 100)
     
-    # Carregamento e Status dos Sprites
-    c1, c2 = st.columns(2)
-    with c1:
+    # Organização em colunas para os sprites (mais compacto)
+    col1, col2 = st.columns(2)
+    with col1:
         u_idle = st.file_uploader("Idle", type=["png", "jpg"], key="u_idle")
-        idle_uri, i_icon = resolve_asset(u_idle, "sprite_p.png")
-        st.caption(f"{i_icon} Parado")
-        
-        u_left = st.file_uploader("Esq.", type=["png", "jpg"], key="u_left")
-        left_uri, l_icon = resolve_asset(u_left, "sprite_e.png")
-        st.caption(f"{l_icon} Esquerda")
-        
+        u_left = st.file_uploader("Esq", type=["png", "jpg"], key="u_left")
         u_down = st.file_uploader("Baixo", type=["png", "jpg"], key="u_down")
-        down_uri, d_icon = resolve_asset(u_down, "sprite_b.png")
-        st.caption(f"{d_icon} Baixo")
-        
-    with c2:
+    with col2:
         u_up = st.file_uploader("Cima", type=["png", "jpg"], key="u_up")
-        up_uri, u_icon = resolve_asset(u_up, "sprite_c.png")
-        st.caption(f"{u_icon} Cima")
-        
-        u_right = st.file_uploader("Dir.", type=["png", "jpg"], key="u_right")
-        right_uri, r_icon = resolve_asset(u_right, "sprite_d.png")
-        st.caption(f"{r_icon} Direita")
+        u_right = st.file_uploader("Dir", type=["png", "jpg"], key="u_right")
 
-    # Fallback: Se não tem pose, usa a idle
-    left_uri = left_uri or idle_uri
-    down_uri = down_uri or idle_uri
-    up_uri = up_uri or idle_uri
-    right_uri = right_uri or idle_uri
+    idle_uri, _ = file_to_data_uri(u_idle, "sprite_p.png")
+    left_uri, _ = file_to_data_uri(u_left, "sprite_e.png")
+    down_uri, _ = file_to_data_uri(u_down, "sprite_b.png")
+    up_uri, _ = file_to_data_uri(u_up, "sprite_c.png")
+    right_uri, _ = file_to_data_uri(u_right, "sprite_d.png")
 
     st.divider()
-    st.subheader("Dificuldade")
-    bpm = st.slider("BPM", 60, 320, 117)
-    note_speed = st.slider("Velocidade", 100, 800, 350)
-    note_freq = st.slider("Densidade", 0.2, 3.0, 1.0)
-    seed = st.number_input("Seed", value=3719)
+    st.subheader("⚙️ Dificuldade")
+    bpm = st.slider("BPM", 60, 500, 172)
+    note_speed = st.slider("Velocidade", 100, 1000, 350)
+    note_freq = st.slider("Densidade", 0.2, 5.0, 1.0)
+    seed = st.number_input("Seed", value=12345)
 
-assets = {
+# Preparar assets para o JavaScript
+assets = {{
     "audio": audio_uri,
-    "sprites": {"idle": idle_uri, "left": left_uri, "down": down_uri, "up": up_uri, "right": right_uri},
-    "config": {"width": WIDTH, "height": HEIGHT, "bpm": bpm, "noteSpeed": note_speed, "noteFreq": note_freq, "seed": int(seed), "chromaSensitivity": chroma_sensitivity}
-}
+    "sprites": {{
+        "idle": idle_uri,
+        "left": left_uri or idle_uri,
+        "down": down_uri or idle_uri,
+        "up": up_uri or idle_uri,
+        "right": right_uri or idle_uri,
+    }},
+    "config": {{
+        "width": WIDTH, "height": HEIGHT, "bpm": bpm,
+        "noteSpeed": note_speed, "noteFreq": note_freq,
+        "seed": int(seed), "chromaSensitivity": chroma_sensitivity
+    }},
+}}
 
 config_json = json.dumps(assets, ensure_ascii=False)
 
+# Código HTML/JS do jogo
 html_code = f"""
-<div id="game-container">
-    <div class="controls">
-        <button id="start-btn">JOGAR / REINICIAR</button>
-        <span id="game-status">Aguardando...</span>
+<div id="game-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+    <div style="width: 100%; max-width: {WIDTH}px; display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <button id="start-btn" style="padding: 12px 24px; background: #ff4b4b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">JOGAR / REINICIAR</button>
+        <span id="game-status" style="color: white; font-family: monospace; font-size: 18px;">Aguardando...</span>
     </div>
-    <canvas id="gameCanvas" width="{WIDTH}" height="{HEIGHT}" tabindex="0"></canvas>
+    <canvas id="gameCanvas" width="{WIDTH}" height="{HEIGHT}" tabindex="0" style="background: #146464; border: 4px solid #262730; border-radius: 12px; outline: none; width: 100%; max-width: {WIDTH}px; height: auto;"></canvas>
 </div>
-<style>
-    #game-container {{ 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        font-family: sans-serif; 
-        color: white; 
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-    }}
-    .controls {{ 
-        width: 100%; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        margin-bottom: 10px; 
-    }}
-    #start-btn {{ 
-        padding: 10px 20px; 
-        background: #ff4b4b; 
-        color: white; 
-        border: none; 
-        border-radius: 5px; 
-        cursor: pointer; 
-        font-weight: bold; 
-    }}
-    #gameCanvas {{ 
-        background: #146464; 
-        border: 4px solid #262730; 
-        border-radius: 10px; 
-        outline: none; 
-        width: 100%; 
-        height: auto; 
-        aspect-ratio: {WIDTH} / {HEIGHT};
-    }}
-</style>
+
 <script>
 (() => {{
     const assets = {config_json};
@@ -173,8 +126,9 @@ html_code = f"""
     const ctx = canvas.getContext('2d');
     const startBtn = document.getElementById('start-btn');
     const statusTxt = document.getElementById('game-status');
+
     const COLORS = {{ bg: '#146464', dark: '#141428', gray: '#3c3c50', white: '#ffffff', hitLine: '#c8c8ff', perfect: '#ffdc32', good: '#50dc78', miss: '#dc3c3c', combo: '#ffb400', lanes: ['#ffffff', '#ffa032', '#3cffff', '#f0a0f0'] }};
-    const GAME_CFG = {{ laneCount: 4, laneWidth: 60, gap: 12, startX: 30, hitY: {HEIGHT} - 100, noteH: 24, charX: 630, charY: {HEIGHT} - 50, spriteH: 500 }};
+    const GAME_CFG = {{ laneCount: 4, laneWidth: 80, gap: 15, startX: 50, hitY: {HEIGHT} - 120, noteH: 30, charX: {WIDTH}*0.65, charY: {HEIGHT}-100, spriteH: 500 }};
     const KEY_MAP = {{ 'ArrowLeft': 0, 'ArrowDown': 1, 'ArrowUp': 2, 'ArrowRight': 3, 'a': 0, 's': 1, 'j': 2, 'k': 3, 'A': 0, 'S': 1, 'J': 2, 'K': 3 }};
 
     function removeGreen(img) {{
@@ -205,7 +159,7 @@ html_code = f"""
         }}
         random() {{ this.rng = (this.rng * 1664525 + 1013904223) >>> 0; return this.rng / 4294967296; }}
         genChart() {{
-            const n = []; const dur = (audio && audio.duration && !isNaN(audio.duration)) ? audio.duration : 120; const bi = 60 / assets.config.bpm;
+            const n = []; const dur = audio?.duration || 120; const bi = 60 / assets.config.bpm;
             let t = 3.0;
             while (t < dur - 1.0) {{
                 const l = Math.floor(this.random() * 4); n.push({{ lane: l, time: t, hit: false, miss: false }});
@@ -214,7 +168,7 @@ html_code = f"""
             }}
             return n.sort((a,b) => a.time - b.time);
         }}
-        start() {{ if (!assets.audio) {{ alert("Carregue uma música primeiro!"); return; }} this.reset(); this.running = true; this.startTime = performance.now(); if (audio) audio.play(); statusTxt.textContent = "JOGANDO!"; }}
+        start() {{ this.reset(); this.running = true; this.startTime = performance.now(); if (audio) audio.play(); statusTxt.textContent = "JOGANDO!"; }}
         update(now) {{
             if (!this.running || this.gameOver || this.finished) return;
             const ct = (now - this.startTime) / 1000;
@@ -223,7 +177,7 @@ html_code = f"""
             if (this.poseT > 0) this.poseT -= 1/60; else this.pose = "idle";
             for (let i=0; i<4; i++) if (this.flash[i] > 0) this.flash[i] -= 1/60;
             if (this.health <= 0) {{ this.gameOver = true; this.running = false; if (audio) audio.pause(); statusTxt.textContent = "GAME OVER"; }}
-            if (ct > (audio && audio.duration && !isNaN(audio.duration) ? audio.duration : 120) + 1) {{ this.finished = true; this.running = false; statusTxt.textContent = "FIM!"; }}
+            if (ct > (audio?.duration || 120) + 1) {{ this.finished = true; this.running = false; statusTxt.textContent = "FIM!"; }}
         }}
         handle(key) {{
             const l = KEY_MAP[key]; if (l === undefined || !this.running) return;
@@ -235,80 +189,53 @@ html_code = f"""
             if (d < 0.08) {{ b.hit = true; this.score += 300; this.combo++; this.feedback = "PERFECT"; this.fbT = 0.6; this.health = Math.min(100, this.health+5); }}
             else {{ b.hit = true; this.score += 100; this.combo++; this.feedback = "GOOD"; this.fbT = 0.5; this.health = Math.min(100, this.health+2); }}
         }}
-        roundRect(x, y, w, h, r, fill) {{ ctx.beginPath(); ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r); ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath(); if (fill) ctx.fill(); else ctx.stroke(); }}
+        roundRect(x, y, w, h, r, fill) {{
+            ctx.beginPath(); ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r); ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath();
+            if (fill) ctx.fill(); else ctx.stroke();
+        }}
         draw() {{
             ctx.fillStyle = COLORS.bg; ctx.fillRect(0, 0, {WIDTH}, {HEIGHT});
             const ct = this.running ? (performance.now() - this.startTime) / 1000 : 0;
-            ctx.strokeStyle = COLORS.gray; ctx.beginPath(); ctx.moveTo(370, 0); ctx.lineTo(370, {HEIGHT}); ctx.stroke();
-            for (let i=0; i<4; i++) {{ 
-                const x = GAME_CFG.startX + i * 72; 
-                ctx.fillStyle = COLORS.dark; 
-                ctx.fillRect(x, 0, 60, {HEIGHT}); 
-                ctx.strokeStyle = COLORS.lanes[i]; 
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, 0, 60, {HEIGHT}); 
-                ctx.lineWidth = 1;
+            for (let i=0; i<4; i++) {{
+                const x = GAME_CFG.startX + i * 100;
+                ctx.fillStyle = COLORS.dark; ctx.fillRect(x, 0, 90, {HEIGHT});
+                ctx.strokeStyle = COLORS.lanes[i]; ctx.lineWidth = 2; ctx.strokeRect(x, 0, 90, {HEIGHT});
             }}
-            ctx.strokeStyle = COLORS.hitLine; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(GAME_CFG.startX-5, GAME_CFG.hitY); ctx.lineTo(GAME_CFG.startX+283, GAME_CFG.hitY); ctx.stroke(); ctx.lineWidth = 1;
-            const labels = ["◄", "▼", "▲", "►"];
+            ctx.strokeStyle = COLORS.hitLine; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(GAME_CFG.startX-10, GAME_CFG.hitY); ctx.lineTo(GAME_CFG.startX+390, GAME_CFG.hitY); ctx.stroke();
             for (const n of this.chart) {{
                 if (n.hit || n.miss) continue;
                 const td = n.time - ct; if (td > 2 || td < -0.5) continue;
-                const y = GAME_CFG.hitY - td * assets.config.noteSpeed - 12;
-                const x = GAME_CFG.startX + n.lane * 72;
-                
-                // Desenhar a nota
-                ctx.fillStyle = COLORS.lanes[n.lane]; 
-                this.roundRect(x+4, y, 52, 24, 8, true); 
-                ctx.strokeStyle = "white"; 
-                this.roundRect(x+4, y, 52, 24, 8, false);
-                
-                // Desenhar a seta dentro da nota
-                ctx.fillStyle = "white";
-                ctx.font = "bold 16px monospace";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(labels[n.lane], x+30, y+12);
+                const y = GAME_CFG.hitY - td * assets.config.noteSpeed - 17;
+                const x = GAME_CFG.startX + n.lane * 100;
+                ctx.fillStyle = COLORS.lanes[n.lane]; this.roundRect(x+5, y, 80, 35, 12, true);
+                ctx.strokeStyle = "white"; ctx.lineWidth = 2; this.roundRect(x+5, y, 80, 35, 12, false);
             }}
-            
+            const labels = ["◄", "▼", "▲", "►"];
             for (let i=0; i<4; i++) {{
-                const x = GAME_CFG.startX + i * 72; 
-                ctx.fillStyle = this.flash[i] > 0 ? COLORS.lanes[i] : COLORS.gray; 
-                this.roundRect(x+4, GAME_CFG.hitY-18, 52, 36, 10, true);
-                
-                ctx.fillStyle = "white"; 
-                ctx.font = "bold 22px monospace"; 
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(labels[i], x+30, GAME_CFG.hitY);
+                const x = GAME_CFG.startX + i * 100;
+                ctx.fillStyle = this.flash[i] > 0 ? COLORS.lanes[i] : COLORS.gray;
+                this.roundRect(x+5, GAME_CFG.hitY-25, 80, 50, 15, true);
+                ctx.fillStyle = "white"; ctx.font = "bold 30px monospace"; ctx.textAlign = "center";
+                ctx.fillText(labels[i], x+45, GAME_CFG.hitY+10);
             }}
-            ctx.textBaseline = "alphabetic";
             const img = sprites[this.pose] || sprites.idle;
-            if (img) {{ 
-                const r = GAME_CFG.spriteH / img.height; 
-                ctx.drawImage(img, 630 - (img.width * r) / 2, {HEIGHT} - 50 - GAME_CFG.spriteH, img.width * r, GAME_CFG.spriteH); 
-            }}
-            ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "bold 28px monospace";
-            ctx.fillText("SCORE: " + String(this.score).padStart(8, '0'), 400, 60);
-            if (this.combo >= 3) {{ ctx.fillStyle = COLORS.combo; ctx.fillText(this.combo + "x COMBO", 400, 100); }}
-            if (this.fbT > 0) {{ ctx.globalAlpha = Math.min(1, this.fbT / 0.2); ctx.fillStyle = this.feedback === "PERFECT" ? COLORS.perfect : (this.feedback === "MISS" ? COLORS.miss : COLORS.good); ctx.font = "bold 45px monospace"; ctx.fillText(this.feedback, GAME_CFG.startX, GAME_CFG.hitY-60); ctx.globalAlpha = 1; }}
-            ctx.fillStyle = COLORS.gray; this.roundRect(400, {HEIGHT}-50, 300, 20, 10, true);
-            ctx.fillStyle = this.health > 25 ? COLORS.good : COLORS.miss; this.roundRect(400, {HEIGHT}-50, 300*(this.health/100), 20, 10, true);
-            ctx.strokeStyle = "white"; this.roundRect(400, {HEIGHT}-50, 300, 20, 10, false);
+            if (img) {{ const r = 500/img.height; ctx.drawImage(img, {WIDTH}*0.7-img.width*r/2, {HEIGHT}-120-550, img.width*r, 550); }}
+            ctx.textAlign = "left"; ctx.fillStyle = "white"; ctx.font = "bold 40px monospace";
+            ctx.fillText("SCORE: " + String(this.score).padStart(8, '0'), 500, 80);
+            if (this.combo >= 3) {{ ctx.fillStyle = COLORS.combo; ctx.fillText(this.combo + "x COMBO", 500, 130); }}
+            if (this.fbT > 0) {{ ctx.globalAlpha = Math.min(1, this.fbT / 0.2); ctx.fillStyle = this.feedback === "PERFECT" ? COLORS.perfect : (this.feedback === "MISS" ? COLORS.miss : COLORS.good); ctx.font = "bold 70px monospace"; ctx.fillText(this.feedback, GAME_CFG.startX, GAME_CFG.hitY-100); ctx.globalAlpha = 1; }}
+            ctx.fillStyle = COLORS.gray; this.roundRect(500, {HEIGHT}-100, 450, 35, 15, true);
+            ctx.fillStyle = this.health > 25 ? COLORS.good : COLORS.miss; this.roundRect(500, {HEIGHT}-100, 450*(this.health/100), 35, 15, true);
+            ctx.strokeStyle = "white"; ctx.lineWidth = 3; this.roundRect(500, {HEIGHT}-100, 450, 35, 15, false);
             if (this.gameOver) this.drawOverlay("GAME OVER", COLORS.miss, "HP zerado!");
-            if (this.finished) this.drawOverlay("FIM!", COLORS.perfect, "Score final: " + this.score);
-            if (!this.running && !this.gameOver && !this.finished) {{ this.drawOverlay("PRONTO?", "white", "Clique em JOGAR ou aperte ENTER"); }}
+            if (this.finished) this.drawOverlay("FIM!", COLORS.perfect, "Score: " + this.score);
+            if (!this.running && !this.gameOver && !this.finished) {{ this.drawOverlay("PRONTO?", "white", "Clique em JOGAR"); }}
         }}
-        drawOverlay(txt, color, sub) {{ 
-            ctx.fillStyle = "rgba(0,0,0,0.8)"; 
-            ctx.fillRect(0, 0, {WIDTH}, {HEIGHT}); 
-            ctx.textAlign = "center"; 
-            ctx.fillStyle = color; 
-            ctx.font = "bold 70px monospace"; 
-            ctx.fillText(txt, {WIDTH}/2, {HEIGHT}/2); 
-            ctx.fillStyle = "white"; 
-            ctx.font = "bold 25px monospace"; 
-            ctx.fillText(sub, {WIDTH}/2, {HEIGHT}/2 + 60); 
+        drawOverlay(txt, color, sub) {{
+            ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(0,0,{WIDTH},{HEIGHT});
+            ctx.textAlign = "center"; ctx.fillStyle = color; ctx.font = "bold 100px monospace";
+            ctx.fillText(txt, {WIDTH}/2, {HEIGHT}/2);
+            ctx.fillStyle = "white"; ctx.font = "bold 40px monospace"; ctx.fillText(sub, {WIDTH}/2, {HEIGHT}/2 + 80);
         }}
     }}
 
@@ -320,4 +247,5 @@ html_code = f"""
 }})();
 </script>
 """
-components.html(html_code, height=800, scrolling=False)
+
+components.html(html_code, height=900, scrolling=False)
