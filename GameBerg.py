@@ -1,29 +1,24 @@
 import streamlit as st
-import os
 
-# 1. Configuração da Página (Deve ser a primeira linha de comando Streamlit)
+# 1. Configuração da Página (Deve ser a primeira linha)
 st.set_page_config(
     page_title="Domingo a Noite Sofrendo",
     page_icon="🎵",
     layout="centered",
 )
 
-# 2. CÓDIGO DE DIAGNÓSTICO (Ajuda a identificar por que o erro de navegação acontece)
-if not os.path.exists("pages"):
-    st.error("❌ Erro Crítico: A pasta 'pages' não foi encontrada na raiz do projeto.")
-elif not os.path.exists("pages/main.py"):
-    st.error("❌ Erro Crítico: O arquivo 'main.py' não foi encontrado dentro da pasta 'pages'.")
-    st.write("Arquivos encontrados em pages/:", os.listdir("pages"))
-
-# 3. CSS para esconder o menu lateral e deixar a página limpa
+# 2. CSS para esconder o menu lateral e deixar a página limpa
 st.markdown("""
 <style>
-[data-testid="stSidebar"] { display: none; }
-[data-testid="collapsedControl"] { display: none; }
+    [data-testid="stSidebar"] { display: none; }
+    [data-testid="collapsedControl"] { display: none; }
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    .block-container { padding-top: 2rem; }
 </style>
 """, unsafe_allow_html=True)
 
-# 4. Landing Page Visual (HTML/CSS)
+# 3. Landing Page Visual (HTML/CSS)
 st.components.v1.html("""
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -31,9 +26,9 @@ st.components.v1.html("""
 <meta charset="UTF-8">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #06060f; font-family: 'Courier New', monospace; color: #e0e0ff; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+  body { background: #06060f; font-family: 'Courier New', monospace; color: #e0e0ff; display: flex; align-items: center; justify-content: center; padding: 1rem; overflow-x: hidden; }
   .lp { width: 100%; max-width: 640px; }
-  .hero { background: #0a0a1a; border: 0.5px solid #2a2a4a; border-radius: 16px; padding: 3rem 2rem 2rem; text-align: center; position: relative; overflow: hidden; }
+  .hero { background: #0a0a1a; border: 0.5px solid #2a2a4a; border-radius: 16px; padding: 2.5rem 1.5rem; text-align: center; position: relative; overflow: hidden; }
   .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #3cffff, #f0a0f0, #ffb400, #3cffff); background-size: 200%; animation: slide 3s linear infinite; }
   @keyframes slide { to { background-position: 200% center; } }
   .title { font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff; line-height: 1.2; }
@@ -104,13 +99,11 @@ st.components.v1.html("""
 </div>
 </body>
 </html>
-""", height=850, scrolling=True)
+""", height=820)
 
-# 5. Botão de Navegação
+# 4. Botão de Navegação
 st.markdown("  
 ", unsafe_allow_html=True)
 if st.button("🎮 JOGAR AGORA", use_container_width=True, type="primary"):
-    try:
-        st.switch_page("main.py")
-    except Exception as e:
-        st.error(f"Erro ao mudar de página: {e}")
+    # IMPORTANTE: O arquivo deve estar em pages/main.py
+    st.switch_page("pages/main.py")
