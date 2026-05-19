@@ -1,11 +1,24 @@
 import streamlit as st
 
+# 1. Configuração da Página (Deve ser a primeira linha)
 st.set_page_config(
     page_title="Domingo a Noite Sofrendo",
     page_icon="🎵",
     layout="centered",
 )
 
+# 2. CSS para esconder o menu lateral e deixar a página limpa
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] { display: none; }
+    [data-testid="collapsedControl"] { display: none; }
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    .block-container { padding-top: 2rem; }
+</style>
+""", unsafe_allow_html=True)
+
+# 3. Landing Page Visual (HTML/CSS)
 st.components.v1.html("""
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -13,16 +26,14 @@ st.components.v1.html("""
 <meta charset="UTF-8">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #06060f; font-family: 'Courier New', monospace; color: #e0e0ff; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+  body { background: #06060f; font-family: 'Courier New', monospace; color: #e0e0ff; display: flex; align-items: center; justify-content: center; padding: 1rem; overflow-x: hidden; }
   .lp { width: 100%; max-width: 640px; }
-  .hero { background: #0a0a1a; border: 0.5px solid #2a2a4a; border-radius: 16px; padding: 3rem 2rem 2rem; text-align: center; position: relative; overflow: hidden; }
+  .hero { background: #0a0a1a; border: 0.5px solid #2a2a4a; border-radius: 16px; padding: 2.5rem 1.5rem; text-align: center; position: relative; overflow: hidden; }
   .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #3cffff, #f0a0f0, #ffb400, #3cffff); background-size: 200%; animation: slide 3s linear infinite; }
   @keyframes slide { to { background-position: 200% center; } }
   .title { font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #ffffff; line-height: 1.2; }
   .title span { color: #3cffff; }
   .subtitle { margin-top: 8px; font-size: 13px; color: #8888aa; letter-spacing: 1px; }
-  .cta-btn { display: inline-block; margin-top: 1.5rem; padding: 12px 32px; background: #ff4b4b; color: white; font-family: 'Courier New', monospace; font-weight: 700; font-size: 15px; border-radius: 8px; border: none; cursor: pointer; letter-spacing: 1px; transition: background 0.2s, transform 0.1s; text-decoration: none; }
-  .cta-btn:hover { background: #ff3333; transform: scale(1.03); }
   .demo-area { background: #0e0e22; border: 1px solid #2a2a4a; border-radius: 12px; margin-top: 1.5rem; padding: 1.5rem 1rem; position: relative; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
   .demo-label { font-size: 11px; color: #555577; letter-spacing: 2px; position: absolute; top: 10px; left: 14px; }
   .setas { display: flex; gap: 8px; }
@@ -60,9 +71,9 @@ st.components.v1.html("""
 <body>
 <div class="lp">
   <div class="hero">
-    <div class="title">DOMINGO A NOITE<br><span>SOFRENDO</span></div>
+    <div class="title">DOMINGO A NOITE  
+<span>SOFRENDO</span></div>
     <div class="subtitle">rhythm game • acerte as notas • não perca o ritmo</div>
-    <a class="cta-btn" href="https://domingo-a-noite-sofrendo.streamlit.app/" target="_blank">JOGAR AGORA</a>
     <div class="demo-area">
       <div class="demo-label">PREVIEW</div>
       <div class="score-display">SCORE: 00012800</div>
@@ -85,20 +96,14 @@ st.components.v1.html("""
     </div>
     <div class="ctrl" style="margin-top:10px"><span class="key">ENTER</span><span class="ctrl-desc">iniciar / reiniciar a música</span></div>
   </div>
-  <div class="section" style="margin-top:12px">
-    <div class="section-title">FEATURES</div>
-    <div class="tags">
-      <span class="tag tag-cyan">BPM ajustável</span>
-      <span class="tag tag-cyan">velocidade das notas</span>
-      <span class="tag tag-cyan">densidade customizável</span>
-      <span class="tag tag-purple">sprites com chroma key</span>
-      <span class="tag tag-purple">personagem animado</span>
-      <span class="tag tag-yellow">sistema de combo</span>
-      <span class="tag tag-yellow">barra de HP</span>
-      <span class="tag tag-yellow">PERFECT / GOOD / MISS</span>
-    </div>
-  </div>
 </div>
 </body>
 </html>
-""", height=900, scrolling=True)
+""", height=820)
+
+# 4. Botão de Navegação (Substituindo o link <a> por st.button)
+st.markdown("  
+", unsafe_allow_html=True)
+if st.button("🎮 JOGAR AGORA", use_container_width=True, type="primary"):
+    # IMPORTANTE: O arquivo do jogo deve estar em pages/main.py
+    st.switch_page("pages/main.py")
