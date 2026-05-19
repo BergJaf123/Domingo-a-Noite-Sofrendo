@@ -111,7 +111,6 @@ st.markdown("
 ", unsafe_allow_html=True)
 if st.button("🎮 JOGAR AGORA", use_container_width=True, type="primary"):
     try:
-        # IMPORTANTE: O arquivo do jogo deve estar em pages/main.py
-        st.switch_page("pages/main.py")
+        st.switch_page("main.py")
     except Exception as e:
         st.error(f"Erro ao mudar de página: {e}")
