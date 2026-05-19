@@ -91,21 +91,21 @@ with st.sidebar:
     seed = st.number_input("Seed", value=12345)
 
 # Preparar assets para o JavaScript
-assets = {{
+assets = {
     "audio": audio_uri,
-    "sprites": {{
+    "sprites": {
         "idle": idle_uri,
         "left": left_uri or idle_uri,
         "down": down_uri or idle_uri,
         "up": up_uri or idle_uri,
         "right": right_uri or idle_uri,
-    }},
-    "config": {{
+    },
+    "config": {
         "width": WIDTH, "height": HEIGHT, "bpm": bpm,
         "noteSpeed": note_speed, "noteFreq": note_freq,
         "seed": int(seed), "chromaSensitivity": chroma_sensitivity
-    }},
-}}
+    },
+}
 
 config_json = json.dumps(assets, ensure_ascii=False)
 
