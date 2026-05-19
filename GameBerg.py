@@ -102,8 +102,7 @@ st.components.v1.html("""
 """, height=820)
 
 # 4. Botão de Navegação
-st.markdown("  
-", unsafe_allow_html=True)
+st.markdown(" ", unsafe_allow_html=True)
 if st.button("🎮 JOGAR AGORA", use_container_width=True, type="primary"):
     # IMPORTANTE: O arquivo deve estar em pages/main.py
     st.switch_page("pages/main.py")
