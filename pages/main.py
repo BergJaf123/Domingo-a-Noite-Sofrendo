@@ -5,7 +5,7 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Dimensões do jogo (Aumentadas para melhor visualização)
+# Dimensões do jogo
 WIDTH = 1400
 HEIGHT = 800
 
@@ -17,16 +17,26 @@ MIME_BY_SUFFIX = {
 }
 
 def get_local_file_as_data_uri(file_name):
-    base_path = Path(__file__).parent.parent
+    # O arquivo original usava .parent.parent, o que pode subir demais na estrutura de pastas
+    # Vamos tentar encontrar o arquivo no diretório atual primeiro
+    base_path = Path(__file__).parent
     file_path = base_path / file_name
-    if not file_path.exists(): return None
+    
+    # Se não encontrar no atual, tenta no diretório pai (caso esteja em uma subpasta)
+    if not file_path.exists():
+        file_path = base_path.parent / file_name
+        
+    if not file_path.exists(): 
+        return None
+        
     suffix = file_path.suffix.lower()
     mime = MIME_BY_SUFFIX.get(suffix, "application/octet-stream")
     try:
         with open(file_path, "rb") as f:
             payload = base64.b64encode(f.read()).decode("utf-8")
         return f"data:{mime};base64,{payload}"
-    except: return None
+    except: 
+        return None
 
 def file_to_data_uri(uploaded_file, file_name, fallback_mime="application/octet-stream"):
     if uploaded_file is not None:
@@ -34,15 +44,15 @@ def file_to_data_uri(uploaded_file, file_name, fallback_mime="application/octet-
         mime = MIME_BY_SUFFIX.get(suffix, fallback_mime)
         payload = base64.b64encode(uploaded_file.getvalue()).decode("utf-8")
         return f"data:{mime};base64,{payload}", "Upload"
+    
     uri = get_local_file_as_data_uri(file_name)
-    return (uri, "Auto") if uri else ("", "N/A")
+    return (uri, "Padrão") if uri else ("", "Não encontrado")
 
-# Estilo CSS para diminuir os botões de upload e ocupar a tela toda
+# Estilo CSS
 st.markdown("""
     <style>
         .block-container { padding: 1rem 1rem; max-width: 100% !important; }
         [data-testid="stSidebar"] { width: 300px !important; }
-        /* Botões de upload super compactos */
         .stFileUploader section { padding: 0.1rem 0.3rem !important; min-height: 45px !important; }
         .stFileUploader label { font-size: 0.75rem !important; margin-bottom: 2px !important; }
         .stFileUploader div div { font-size: 0.65rem !important; }
@@ -55,19 +65,21 @@ with st.sidebar:
     st.header("🎮 Configurações")
     
     if st.button("🏠 Voltar para o Início"):
-        st.switch_page("GameBerg.py")
+        st.info("Redirecionando...")
+        # st.switch_page("GameBerg.py") # Comentado para evitar erro se o arquivo não existir
     
     st.divider()
     st.subheader("🎵 Música")
     audio_file = st.file_uploader("Trocar Música", type=["mp3", "wav", "ogg"], label_visibility="collapsed")
     audio_uri, audio_status = file_to_data_uri(audio_file, "musica.mp3", "audio/mpeg")
     st.caption(f"Status: {audio_status}")
+    if audio_status == "Não encontrado":
+        st.warning("Arquivo 'musica.mp3' não encontrado na pasta do script.")
     
     st.divider()
     st.subheader("🖼️ Sprites")
     chroma_sensitivity = st.slider("Chroma Key", 0, 255, 100)
     
-    # Organização em colunas para os sprites (mais compacto)
     col1, col2 = st.columns(2)
     with col1:
         u_idle = st.file_uploader("Idle", type=["png", "jpg"], key="u_idle")
@@ -77,11 +89,15 @@ with st.sidebar:
         u_up = st.file_uploader("Cima", type=["png", "jpg"], key="u_up")
         u_right = st.file_uploader("Dir", type=["png", "jpg"], key="u_right")
 
-    idle_uri, _ = file_to_data_uri(u_idle, "sprite_p.png")
-    left_uri, _ = file_to_data_uri(u_left, "sprite_e.png")
-    down_uri, _ = file_to_data_uri(u_down, "sprite_b.png")
-    up_uri, _ = file_to_data_uri(u_up, "sprite_c.png")
-    right_uri, _ = file_to_data_uri(u_right, "sprite_d.png")
+    idle_uri, s_idle = file_to_data_uri(u_idle, "sprite_p.png")
+    left_uri, s_left = file_to_data_uri(u_left, "sprite_e.png")
+    down_uri, s_down = file_to_data_uri(u_down, "sprite_b.png")
+    up_uri, s_up = file_to_data_uri(u_up, "sprite_c.png")
+    right_uri, s_right = file_to_data_uri(u_right, "sprite_d.png")
+    
+    # Mostrar avisos se os sprites padrão não forem encontrados
+    if "Não encontrado" in [s_idle, s_left, s_down, s_up, s_right]:
+        st.error("Alguns sprites padrão não foram encontrados.")
 
     st.divider()
     st.subheader("⚙️ Dificuldade")
@@ -159,7 +175,7 @@ html_code = f"""
         }}
         random() {{ this.rng = (this.rng * 1664525 + 1013904223) >>> 0; return this.rng / 4294967296; }}
         genChart() {{
-            const n = []; const dur = audio?.duration || 120; const bi = 60 / assets.config.bpm;
+            const n = []; const dur = (audio && audio.duration && isFinite(audio.duration)) ? audio.duration : 120; const bi = 60 / assets.config.bpm;
             let t = 3.0;
             while (t < dur - 1.0) {{
                 const l = Math.floor(this.random() * 4); n.push({{ lane: l, time: t, hit: false, miss: false }});
@@ -177,7 +193,8 @@ html_code = f"""
             if (this.poseT > 0) this.poseT -= 1/60; else this.pose = "idle";
             for (let i=0; i<4; i++) if (this.flash[i] > 0) this.flash[i] -= 1/60;
             if (this.health <= 0) {{ this.gameOver = true; this.running = false; if (audio) audio.pause(); statusTxt.textContent = "GAME OVER"; }}
-            if (ct > (audio?.duration || 120) + 1) {{ this.finished = true; this.running = false; statusTxt.textContent = "FIM!"; }}
+            const dur = (audio && audio.duration && isFinite(audio.duration)) ? audio.duration : 120;
+            if (ct > dur + 1) {{ this.finished = true; this.running = false; statusTxt.textContent = "FIM!"; }}
         }}
         handle(key) {{
             const l = KEY_MAP[key]; if (l === undefined || !this.running) return;
